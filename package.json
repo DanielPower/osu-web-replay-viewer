@@ -14,6 +14,7 @@
     "vite": "^6.2.0"
   },
   "dependencies": {
+    "@zip.js/zip.js": "^2.7.57",
     "osu-parsers": "^4.1.7",
     "pixi.js": "^8.9.0"
   }
