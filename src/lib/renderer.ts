@@ -42,7 +42,10 @@ function approachCircleRadius({
 
 export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 	const renderer = new Application();
-	await renderer.init({ backgroundColor: 0x1099bb, width: 512, height: 384, antialias: true });
+	const offsetX = (640 - 512) / 2;
+	const offsetY = (480 - 384) / 2;
+
+	await renderer.init({ backgroundColor: 0x000000, width: 640, height: 480, antialias: true });
 
 	const preempt = calcPreempt(beatmap.difficulty.approachRate);
 	const fade = calcFade(beatmap.difficulty.approachRate);
@@ -55,7 +58,7 @@ export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 	}[] = [];
 	for (const hitObject of beatmap.hitObjects) {
 		const hitCircle = new Graphics();
-		hitCircle.circle(hitObject.startX, hitObject.startY, objectRadius);
+		hitCircle.circle(hitObject.startX + offsetX, hitObject.startY + offsetY, objectRadius);
 		hitCircle.fill(0xffffff);
 		hitCircle.stroke(0x000000);
 		hitCircle.zIndex = -hitObject.startTime;
@@ -79,8 +82,8 @@ export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 				approachCircle.visible = true;
 				approachCircle.clear();
 				approachCircle.circle(
-					hitObject.startX,
-					hitObject.startY,
+					hitObject.startX + offsetX,
+					hitObject.startY + offsetY,
 					approachCircleRadius({
 						timeRemaining: hitObject.startTime - time,
 						preempt,
@@ -90,7 +93,7 @@ export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 				approachCircle.stroke(0xffffff);
 				hitCircle.alpha = alpha;
 				approachCircle.alpha = alpha;
-			} else if (time > hitObject.startTime) {
+			} else {
 				hitCircle.visible = false;
 				approachCircle.visible = false;
 			}
