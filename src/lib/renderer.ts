@@ -50,26 +50,25 @@ export const createRenderer = async ({ beatmap, score }: { beatmap: Beatmap; sco
 	const preempt = calcPreempt(beatmap.difficulty.approachRate);
 	const fade = calcFade(beatmap.difficulty.approachRate);
 	const objectRadius = calcObjectRadius(beatmap.difficulty.circleSize);
-
 	const cursor = new Graphics();
-	console.log(score);
-	if (score?.replay) {
-		const initialPosition = score.replay.frames[0].position;
-		console.log(score.replay.frames[0].position);
-		cursor.circle(initialPosition.x, initialPosition.y, 5);
-		cursor.fill(0xff0000);
-		renderer.stage.addChild(cursor);
-	}
+	renderer.stage.addChild(cursor);
 
 	const circles: {
 		hitObject: HitObject;
 		hitCircle: Graphics;
 		approachCircle: Graphics;
 	}[] = [];
+
+	let hitColorIndex = 0;
 	for (const hitObject of beatmap.hitObjects) {
 		const hitCircle = new Graphics();
+		if (hitObject.hitType === 2) {
+			hitColorIndex = (hitColorIndex + 1) % beatmap.colors.comboColors.length;
+		}
+		const color = beatmap.colors.comboColors[hitColorIndex];
+		const hexColor = (color.red << 16) + (color.green << 8) + color.blue;
 		hitCircle.circle(hitObject.startX + offsetX, hitObject.startY + offsetY, objectRadius);
-		hitCircle.fill(0xffffff);
+		hitCircle.fill(hexColor);
 		hitCircle.stroke(0x000000);
 		hitCircle.zIndex = -hitObject.startTime;
 		hitCircle.alpha = 0;
@@ -110,10 +109,8 @@ export const createRenderer = async ({ beatmap, score }: { beatmap: Beatmap; sco
 		}
 
 		if (score?.replay) {
-			console.log(time);
 			const frameIndex = score.replay.frames.findIndex((frame) => frame.startTime > time) - 1;
 			const frame = score.replay.frames[Math.max(0, frameIndex)];
-			console.log(frameIndex);
 			cursor.moveTo(frame.position.x + offsetX, frame.position.y + offsetY);
 			cursor.clear();
 			cursor.circle(frame.position.x + offsetX, frame.position.y + offsetY, 5);
