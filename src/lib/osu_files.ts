@@ -1,5 +1,5 @@
 import { BlobReader, ZipReader, TextWriter, BlobWriter } from '@zip.js/zip.js';
-import { BeatmapDecoder } from 'osu-parsers';
+import { BeatmapDecoder, ScoreDecoder } from 'osu-parsers';
 
 const readZip = (blob: Blob) => {
 	const blobReader = new BlobReader(blob);
@@ -7,7 +7,8 @@ const readZip = (blob: Blob) => {
 	return zipReader.getEntries();
 };
 
-const decoder = new BeatmapDecoder();
+const beatmapDecoder = new BeatmapDecoder();
+const scoreDecoder = new ScoreDecoder();
 
 export const extractAudioFile = async (entry: any) => {
 	if (!entry.getData) {
@@ -38,7 +39,7 @@ export const readBeatmapSet = async (url: string) => {
 				const textWriter = new TextWriter();
 				await entry.getData(textWriter);
 				const content = await textWriter.getData();
-				return decoder.decodeFromString(content);
+				return beatmapDecoder.decodeFromString(content);
 			})
 	);
 
@@ -61,4 +62,12 @@ export const readBeatmapSet = async (url: string) => {
 		beatmaps,
 		audios
 	};
+};
+
+export const readScore = async (url: string) => {
+	const response = await fetch(url);
+	const buffer = await response.arrayBuffer();
+	const score = await scoreDecoder.decodeFromBuffer(buffer);
+
+	return score;
 };

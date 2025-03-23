@@ -55,7 +55,6 @@
 			currentTime = audio.currentTime;
 			if (duration > 0) {
 				seekValue = (currentTime / duration) * 100;
-				console.log(seekValue);
 			}
 		}
 	}

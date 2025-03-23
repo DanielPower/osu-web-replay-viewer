@@ -1,4 +1,4 @@
-import { HitObject, type Beatmap } from 'osu-classes';
+import { HitObject, Score, type Beatmap } from 'osu-classes';
 import { Application, Graphics } from 'pixi.js';
 
 const calcPreempt = (AR: number) => {
@@ -40,7 +40,7 @@ function approachCircleRadius({
 	return approachRadius;
 }
 
-export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
+export const createRenderer = async ({ beatmap, score }: { beatmap: Beatmap; score?: Score }) => {
 	const renderer = new Application();
 	const offsetX = (640 - 512) / 2;
 	const offsetY = (480 - 384) / 2;
@@ -50,6 +50,16 @@ export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 	const preempt = calcPreempt(beatmap.difficulty.approachRate);
 	const fade = calcFade(beatmap.difficulty.approachRate);
 	const objectRadius = calcObjectRadius(beatmap.difficulty.circleSize);
+
+	const cursor = new Graphics();
+	console.log(score);
+	if (score?.replay) {
+		const initialPosition = score.replay.frames[0].position;
+		console.log(score.replay.frames[0].position);
+		cursor.circle(initialPosition.x, initialPosition.y, 5);
+		cursor.fill(0xff0000);
+		renderer.stage.addChild(cursor);
+	}
 
 	const circles: {
 		hitObject: HitObject;
@@ -97,6 +107,17 @@ export const createRenderer = async ({ beatmap }: { beatmap: Beatmap }) => {
 				hitCircle.visible = false;
 				approachCircle.visible = false;
 			}
+		}
+
+		if (score?.replay) {
+			console.log(time);
+			const frameIndex = score.replay.frames.findIndex((frame) => frame.startTime > time) - 1;
+			const frame = score.replay.frames[Math.max(0, frameIndex)];
+			console.log(frameIndex);
+			cursor.moveTo(frame.position.x + offsetX, frame.position.y + offsetY);
+			cursor.clear();
+			cursor.circle(frame.position.x + offsetX, frame.position.y + offsetY, 5);
+			cursor.fill(0xff0000);
 		}
 	};
 

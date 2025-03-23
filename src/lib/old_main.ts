@@ -11,7 +11,6 @@ export const start = async () => {
 		const renderer = await createRenderer({ beatmap });
 		document.getElementById('viewer_container')!.appendChild(renderer.canvas);
 		const update = () => {
-			console.log(audios[0].currentTime);
 			renderer.update(audios[0].currentTime * 1000);
 			requestAnimationFrame(update);
 		};
