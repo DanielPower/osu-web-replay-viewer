@@ -35,7 +35,7 @@ function approachCircleRadius({
 	objectRadius: number;
 }) {
 	let progress = Math.min(Math.max(1 - timeRemaining / preempt, 0), 1); // Clamped between 0 and 1
-	let approachRadius = (1.8 - 0.8 * progress) * objectRadius;
+	let approachRadius = (3 - 2 * progress) * objectRadius;
 
 	return approachRadius;
 }
