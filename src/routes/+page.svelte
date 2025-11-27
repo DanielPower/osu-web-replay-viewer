@@ -1,7 +1,7 @@
 <script lang="ts">
 	import AudioControls from '$lib/components/AudioControls.svelte';
 	import { readBeatmapSet, readScore } from '$lib/osu_files';
-	import { createRenderer } from '$lib/renderer';
+	import { createRenderData, createRenderer } from '$lib/renderer';
 	import type { Beatmap } from 'osu-classes';
 	import { onMount } from 'svelte';
 
@@ -21,6 +21,7 @@
 			}
 			requestAnimationFrame(update);
 		};
+		createRenderData({ beatmap, score });
 		update();
 	});
 </script>

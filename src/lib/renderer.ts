@@ -1,29 +1,7 @@
 import { HitObject, Score, type Beatmap } from 'osu-classes';
 import { Application, Graphics } from 'pixi.js';
-
-const calcPreempt = (AR: number) => {
-	if (AR < 5) {
-		return 1200 + (600 * (5 - AR)) / 5;
-	}
-	if (AR > 5) {
-		return 1200 - (120 * (AR - 5)) / 5;
-	}
-	return 1200;
-};
-
-const calcFade = (AR: number) => {
-	if (AR < 5) {
-		return 800 + (400 * (5 - AR)) / 5;
-	}
-	if (AR > 5) {
-		return 800 - (80 * (AR - 5)) / 5;
-	}
-	return 800;
-};
-
-function calcObjectRadius(CS: number) {
-	return 32 * (1 - (0.7 * (CS - 5)) / 5);
-}
+import { calcPreempt, calcFade, calcObjectRadius } from './osu_math';
+import type { StandardReplayFrame } from 'osu-standard-stable';
 
 function approachCircleRadius({
 	timeRemaining,
@@ -34,11 +12,28 @@ function approachCircleRadius({
 	preempt: number;
 	objectRadius: number;
 }) {
-	let progress = Math.min(Math.max(1 - timeRemaining / preempt, 0), 1); // Clamped between 0 and 1
-	let approachRadius = (3 - 2 * progress) * objectRadius;
+	const progress = Math.min(Math.max(1 - timeRemaining / preempt, 0), 1); // Clamped between 0 and 1
+	const approachRadius = (3 - 2 * progress) * objectRadius;
 
 	return approachRadius;
 }
+
+export const createRenderData = async ({ beatmap, score }: { beatmap: Beatmap; score: Score }) => {
+	const output = [];
+	if (!score.replay) {
+		throw new Error('No replay found');
+	}
+	console.log(score.replay);
+	for (const frame of (score.replay.frames as StandardReplayFrame[])) {
+		output.push({
+			position: {
+				x: frame.position.x,
+				y: frame.position.y
+			}
+		});
+	}
+	return output;
+};
 
 export const createRenderer = async ({ beatmap, score }: { beatmap: Beatmap; score?: Score }) => {
 	const renderer = new Application();
@@ -111,6 +106,7 @@ export const createRenderer = async ({ beatmap, score }: { beatmap: Beatmap; sco
 		if (score?.replay) {
 			const frameIndex = score.replay.frames.findIndex((frame) => frame.startTime > time) - 1;
 			const frame = score.replay.frames[Math.max(0, frameIndex)];
+			console.log(frame);
 			cursor.moveTo(frame.position.x + offsetX, frame.position.y + offsetY);
 			cursor.clear();
 			cursor.circle(frame.position.x + offsetX, frame.position.y + offsetY, 5);
