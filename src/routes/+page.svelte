@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AudioControls from '$lib/components/AudioControls.svelte';
 	import { readBeatmapSet, readScore } from '$lib/osu_files';
+	import { simulateReplay } from '$lib/osu_simulation';
 	import { createRenderData, createRenderer } from '$lib/renderer';
 	import type { Beatmap } from 'osu-classes';
 	import { onMount } from 'svelte';
@@ -13,9 +14,17 @@
 		const score = await readScore('/replay.osr');
 		audio = audios[0];
 		beatmap = beatmaps[1];
+		if (!score.replay) {
+			throw new Error('No replay data found in the score file.');
+		}
+		const simulation = simulateReplay(score.replay, beatmap, 0);
+		console.log(simulation);
 		const renderer = await createRenderer({ beatmap, score });
 		document.getElementById('viewer_container')!.appendChild(renderer.canvas);
 		const update = () => {
+			if (!audio) {
+				throw new Error('No audio file found in the beatmap set.');
+			}
 			if (!audio.paused) {
 				renderer.update(audios[0].currentTime * 1000);
 			}

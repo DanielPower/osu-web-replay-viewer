@@ -24,7 +24,7 @@ export const createRenderData = async ({ beatmap, score }: { beatmap: Beatmap; s
 		throw new Error('No replay found');
 	}
 	console.log(score.replay);
-	for (const frame of (score.replay.frames as StandardReplayFrame[])) {
+	for (const frame of score.replay.frames as StandardReplayFrame[]) {
 		output.push({
 			position: {
 				x: frame.position.x,

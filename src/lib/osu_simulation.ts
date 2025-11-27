@@ -1,17 +1,25 @@
-import type { Beatmap, HitObject, Replay, ReplayFrame } from 'osu-classes';
-import type { StandardReplayFrame } from 'osu-standard-stable';
-import { calcObjectRadius } from './osu_math';
+import type { Beatmap, Replay } from 'osu-classes';
+import type { StandardAction, StandardReplayFrame } from 'osu-standard-stable';
 
-export type SimulatedFrame = ReplayFrame & {
-	result: number;
+type HitObject = {
+	x: number;
+	y: number;
+	time: number;
 };
 
-export const keysDown = (keys: number) => ({
-  left: keys & 4,
-  right: keys & 2,
-  mouseLeft: keys & 1,
-  mouseRight: keys & 16
-});
+export type SimulatedFrame = {
+	x: number;
+	y: number;
+	time: number;
+	score: number;
+	combo: number;
+	perfect: number;
+	good: number;
+	okay: number;
+	miss: number;
+	actions: Set<StandardAction>;
+	hitObjects: HitObject[];
+};
 
 export const isInside = (cx: number, cy: number, hx: number, hy: number, hr: number) =>
 	Math.sqrt((cx - hx) ** 2 + (cy - hy) ** 2) < hr;
@@ -22,21 +30,47 @@ export const simulateReplay = (
 	mods: number
 ): SimulatedFrame[] => {
 	const simulatedFrames: SimulatedFrame[] = [];
-  const frames = replay.frames as StandardReplayFrame[];
+	const frames = replay.frames as StandardReplayFrame[];
 
-	for (const i = 0; i < replay.frames.length - 1; i++) {
-    const [prevFrame, frame] = [replay.frames[i], replay.frames[i + 1]];
-    const [prevKeys, keys] = [keysDown(prevFrame.keys), keysDown(frame.keys)];
-    const clicked = 
-		const { x, y, time, keys, result } = frame;
-		const radius = calcObjectRadius(beatmap.difficulty.circleSize);
-		const hitObject = beatmap.hitObjects.find(
-			(hitObject) =>
-				hitObject.startTime >= time - 50 &&
-				hitObject.startTime <= time + 50 &&
-				hitObject.startX &&
-				isInside(x, y, hitObject.startX, hitObject.startY, radius)
-		);
+	let hitObjectIndex = 0;
+	let score = 0;
+	let combo = 0;
+	let perfect = 0;
+	let good = 0;
+	let okay = 0;
+	let miss = 0;
+	let hitObjects: HitObject[] = [];
+
+	for (let i = 0; i < replay.frames.length - 1; i++) {
+		const frame = frames[i];
+		const { x, y } = frame.position;
+		// const radius = calcObjectRadius(beatmap.difficulty.circleSize);
+		const currentFrameHitObjects = [];
+		while (
+			beatmap.hitObjects[hitObjectIndex] &&
+			frame.startTime > beatmap.hitObjects[hitObjectIndex].startTime
+		) {
+			const hitObject = beatmap.hitObjects[hitObjectIndex];
+			currentFrameHitObjects.push({
+				x: hitObject.startX,
+				y: hitObject.startY,
+				time: hitObject.startTime
+			});
+			hitObjectIndex++;
+		}
+		simulatedFrames.push({
+			x,
+			y,
+			time: frame.startTime,
+			score,
+			combo,
+			perfect,
+			good,
+			okay,
+			miss,
+			actions: frame.actions,
+			hitObjects: [...hitObjects, ...currentFrameHitObjects]
+		});
 	}
 
 	return simulatedFrames;
